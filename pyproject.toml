@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flydrones"
+version = "0.1.0"
+description = "Plug a fruit fly connectome into a drone: camera -> 166k simulated neurons -> flight commands."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "SpikeCalls"}, {name = "Claude"}]
+keywords = ["connectome", "drosophila", "drone", "spiking-neural-network", "neuromorphic", "malecns", "flywire", "robotics"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "pyyaml>=6.0",
+  "matplotlib>=3.7",
+  "pillow>=9.0",
+]
+
+[project.optional-dependencies]
+vision = ["opencv-python>=4.8"]
+gestures = ["opencv-python>=4.8", "mediapipe>=0.10"]
+data = ["pyarrow>=14", "pandas>=2.0"]
+tello = ["djitellopy>=2.5", "opencv-python>=4.8"]
+crazyflie = ["cflib>=0.1.25"]
+mavlink = ["pymavlink>=2.4"]
+dev = ["pytest>=7", "ruff>=0.4"]
+all = ["opencv-python>=4.8", "mediapipe>=0.10", "pyarrow>=14", "pandas>=2.0", "djitellopy>=2.5", "cflib>=0.1.25", "pymavlink>=2.4"]
+
+[project.scripts]
+flydrones = "flydrones.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/SpikeCalls/FlyDrones"
+Issues = "https://github.com/SpikeCalls/FlyDrones/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+flydrones = ["defaults.yaml"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "B905"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

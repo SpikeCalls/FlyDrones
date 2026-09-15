@@ -1,0 +1,125 @@
+# FlyDrones default configuration.
+# Every value can be overridden by a YAML file passed with --config.
+# Group "types" are regular expressions matched against the connectome cell type.
+# The same names work for MiniFly (synthetic) and MaleCNS v1.0 (real data).
+
+brain:
+  source: minifly          # "minifly" or path to a .npz built by `flydrones build-brain`
+  seed: 0
+  lif:                     # Shiu et al. 2024 parameters; dt raised to 0.5 ms for real time
+    v_rest: -52.0
+    v_reset: -52.0
+    v_th: -45.0
+    tau_m: 20.0
+    tau_syn: 5.0
+    t_ref: 2.2
+    delay: 1.8
+    w_syn: 0.275
+    poisson_factor: 250.0
+    dt: 0.5
+    noise_mv: 0.0            # membrane noise; keep 0 for MaleCNS (Shiu et al. use none)
+  # Tonic depolarisation (mV). This is the "I am flying" internal state: without
+  # it the flight descending neurons are silent. Engineered, not from the connectome.
+  bias:
+    DNg02_L: 9.0
+    DNg02_R: 9.0
+  record_neurons: 400      # neurons shown in the live spike raster
+
+# ---------------------------------------------------------------------------
+# Sensory inputs: which neurons receive camera / IMU signals
+# feature: brightness | ftb | btf | up | down | loom | loom_speed | yaw_pos | yaw_neg
+#   ftb/btf = front-to-back / back-to-front image motion for that eye
+#   up/down = scene moving up / down
+# ---------------------------------------------------------------------------
+inputs:
+  R16_L:   {types: ["^R1-R6$"], side: L, feature: brightness, eye: L, max_hz: 40}
+  R16_R:   {types: ["^R1-R6$"], side: R, feature: brightness, eye: R, max_hz: 40}
+  T4a_L:   {types: ["^T4a$", "^T5a$"], side: L, feature: ftb,  eye: L, max_hz: 120}
+  T4a_R:   {types: ["^T4a$", "^T5a$"], side: R, feature: ftb,  eye: R, max_hz: 120}
+  T4b_L:   {types: ["^T4b$", "^T5b$"], side: L, feature: btf,  eye: L, max_hz: 120}
+  T4b_R:   {types: ["^T4b$", "^T5b$"], side: R, feature: btf,  eye: R, max_hz: 120}
+  T4c_L:   {types: ["^T4c$", "^T5c$"], side: L, feature: up,   eye: L, max_hz: 120}
+  T4c_R:   {types: ["^T4c$", "^T5c$"], side: R, feature: up,   eye: R, max_hz: 120}
+  T4d_L:   {types: ["^T4d$", "^T5d$"], side: L, feature: down, eye: L, max_hz: 120}
+  T4d_R:   {types: ["^T4d$", "^T5d$"], side: R, feature: down, eye: R, max_hz: 120}
+  LPLC2_L: {types: ["^LPLC2$"], side: L, feature: loom, eye: L, max_hz: 200}
+  LPLC2_R: {types: ["^LPLC2$"], side: R, feature: loom, eye: R, max_hz: 200}
+  LC4_L:   {types: ["^LC4$"], side: L, feature: loom_speed, eye: L, max_hz: 150}
+  LC4_R:   {types: ["^LC4$"], side: R, feature: loom_speed, eye: R, max_hz: 150}
+  HAL_L:   {types: ["(?i)haltere"], side: L, feature: yaw_neg, max_hz: 50}
+  HAL_R:   {types: ["(?i)haltere"], side: R, feature: yaw_pos, max_hz: 50}
+
+imu:
+  yaw_saturation_dps: 150  # yaw rate that drives haltere inputs at max_hz
+
+# ---------------------------------------------------------------------------
+# Motor outputs: descending neurons read out as flight commands
+# ---------------------------------------------------------------------------
+outputs:
+  DNg02_L: {types: ["^DNg02"], side: L, note: "wing-stroke amplitude (Namiki et al. 2022)"}
+  DNg02_R: {types: ["^DNg02"], side: R, note: "wing-stroke amplitude (Namiki et al. 2022)"}
+  DNp03_L: {types: ["^DNp03$"], side: L, note: "looming-evoked flight saccades (Curr Biol 2025)"}
+  DNp03_R: {types: ["^DNp03$"], side: R, note: "looming-evoked flight saccades (Curr Biol 2025)"}
+  DNp01_L: {types: ["^DNp01$", "^GF$"], side: L, note: "giant fiber, escape takeoff (Ache et al. 2019)"}
+  DNp01_R: {types: ["^DNp01$", "^GF$"], side: R, note: "giant fiber, escape takeoff (Ache et al. 2019)"}
+
+vision:
+  width: 96                # camera frame is resized to this before encoding
+  height: 72
+  grid: [6, 8]             # rows, cols of the ommatidia grid per eye
+  flow_gain: 1.2           # pixels/frame that saturate a motion channel
+  loom_gain: 8.0           # (expansion - loom_floor) * gain -> 0..1
+  loom_floor: 0.04
+  blur: 1
+
+# ---------------------------------------------------------------------------
+# Decoder: descending-neuron rates (Hz, minus resting baseline) -> command axes
+# Each axis = gain * sum(weight * (rate - baseline)). Command range is -1..1.
+# ---------------------------------------------------------------------------
+decoder:
+  window_ms: 50
+  smoothing: 0.2           # EMA factor per control tick (0 = frozen, 1 = raw)
+  settle_s: 1.5            # measure resting baselines for this long at start
+  deadzone: 0.04
+  readout_file: null       # JSON from `flydrones calibrate` overrides the terms below
+  axes:
+    throttle:              # vertical speed
+      gain: 0.022
+      terms: {DNg02_L: 0.5, DNg02_R: 0.5}
+    yaw:                   # yaw rate, + = clockwise / right
+      gain: 0.05
+      terms: {DNg02_R: 1.0, DNg02_L: -1.0, DNp03_L: 0.8, DNp03_R: -0.8}
+    forward:
+      gain: 0.0
+      terms: {}
+    lateral:
+      gain: 0.0
+      terms: {}
+  cruise: 0.0              # constant forward speed you choose; looming DNs brake it
+  brake_terms: {DNp03_L: 0.02, DNp03_R: 0.02, DNp01_L: 0.03, DNp01_R: 0.03}
+  escape:
+    terms: [DNp01_L, DNp01_R]
+    threshold_hz: 20
+    mode: climb            # climb | drop | brake
+    duration_s: 0.7
+    strength: 0.8
+
+# ---------------------------------------------------------------------------
+# Safety governor. It always has the last word over the brain.
+# ---------------------------------------------------------------------------
+safety:
+  max_throttle: 0.6
+  max_yaw: 0.6
+  max_forward: 0.4
+  max_lateral: 0.4
+  slew_per_s: 2.5          # max command change per second
+  min_alt_m: 0.3
+  max_alt_m: 2.2
+  geofence_radius_m: 3.0   # only enforced when the drone reports position
+  brain_timeout_s: 0.5     # hover if the brain stops producing output
+  min_battery_pct: 20      # land below this
+  max_flight_s: 180
+
+control:
+  hz: 20
+  takeoff: true
