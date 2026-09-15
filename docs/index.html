@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlyDrones Live: a fly brain flies a drone</title>
+<meta name="description" content="A fruit fly connectome model flies a drone in your browser. Show it your hand: open palm climbs, fist holds, rush at the camera and the giant fiber fires an escape.">
+<meta property="og:title" content="FlyDrones Live: a fly brain flies a drone">
+<meta property="og:description" content="Camera -> fly eyes -> spiking fly brain -> descending neurons -> drone. Runs in your browser.">
+<meta property="og:image" content="https://spikecalls.github.io/FlyDrones/social.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2307090d'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%2339ff88'/%3E%3C/svg%3E">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/jsm/" } }
+</script>
+<style>
+:root{
+  --bg:#05070b; --panel:rgba(10,14,20,.72); --line:rgba(120,160,200,.16); --text:#e8eef5; --muted:#8a98a8;
+  --green:#39ff88; --cyan:#4cc9f0; --pink:#ff4d8d; --amber:#ffb020;
+  --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  --sans: Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block}
+.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+.flash{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 0 0 rgba(255,176,32,0);transition:box-shadow .5s}
+.flash.on{box-shadow:inset 0 0 120px 10px rgba(255,120,40,.55);transition:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.brand{position:fixed;left:18px;top:16px;padding:14px 16px 12px;width:410px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:800;font-size:26px;letter-spacing:.5px}
+.live{font-size:10px;font-weight:700;color:#05070b;background:var(--green);padding:3px 7px;border-radius:99px;letter-spacing:1.5px;box-shadow:0 0 14px rgba(57,255,136,.7)}
+.tag{color:var(--muted);font-size:13px;margin:6px 0 10px;line-height:1.35}
+.tag b{color:var(--text);font-weight:600}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.chip{border:1px solid var(--line);border-radius:9px;padding:6px 7px;background:rgba(255,255,255,.02)}
+.chip .v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text)}
+.chip .k{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
+.chip.g .v{color:var(--green)} .chip.c .v{color:var(--cyan)} .chip.p .v{color:var(--pink)}
+.side{position:fixed;right:16px;top:16px;bottom:84px;width:288px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.side .panel{padding:8px 10px 9px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:1.4px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.ph b{color:var(--text);font-weight:700}
+canvas.hud{display:block;width:100%;border-radius:8px;background:#030508}
+.path{position:fixed;left:18px;bottom:84px;width:560px;padding:10px 16px 8px}
+.gname{font-family:var(--mono);font-size:22px;font-weight:800;letter-spacing:.5px}
+.gname small{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:1px;margin-left:8px}
+.chain{margin-top:6px;font-family:var(--mono);font-size:12.5px;color:var(--cyan);min-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;display:flex;gap:6px;padding:8px;align-items:center;max-width:calc(100vw - 24px);overflow-x:auto}
+.btn{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.btn:hover{border-color:rgba(76,201,240,.6);background:rgba(76,201,240,.08)}
+.btn.on{border-color:var(--green);color:var(--green);box-shadow:0 0 16px rgba(57,255,136,.25) inset}
+.btn kbd{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:6px}
+.sep{width:1px;align-self:stretch;background:var(--line);margin:0 4px}
+.btn.gh{color:#05070b;background:var(--green);border-color:var(--green)}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.9);font-family:var(--mono);font-weight:900;font-size:34px;letter-spacing:3px;color:var(--amber);text-shadow:0 0 24px rgba(255,150,40,.9);opacity:0;transition:all .6s;pointer-events:none;text-align:center}
+.toast small{display:block;font-size:13px;letter-spacing:2px;color:var(--text);opacity:.8;margin-top:6px}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1);transition:none}
+.warm{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-family:var(--mono);pointer-events:none;transition:opacity .6s}
+.warm .t{font-size:13px;letter-spacing:3px;color:var(--green)}
+.warm .bar{width:260px;height:3px;background:var(--line);margin:12px auto 8px;border-radius:3px;overflow:hidden}
+.warm .bar i{display:block;height:100%;width:0;background:var(--green);box-shadow:0 0 10px var(--green)}
+.warm .s{font-size:11px;color:var(--muted)}
+.honest{font-size:10.5px;color:var(--muted);margin-top:9px;line-height:1.4}
+.honest a{color:var(--cyan);text-decoration:none}
+#cam{position:absolute;right:8px;top:8px;width:84px;border-radius:6px;border:1px solid var(--line);display:none;transform:scaleX(-1)}
+.eyewrap{position:relative}
+@media (max-width: 900px){
+  html,body{overflow:auto;height:auto}
+  .side{overflow:visible}
+  .toast{font-size:22px;top:18%}
+  #scene{position:relative;height:56vh}
+  .brand,.side,.path,.dock{position:static;width:auto;transform:none;margin:10px 12px}
+  .side{bottom:auto}
+  .dock{flex-wrap:wrap;justify-content:center}
+  .vignette{display:none}
+}
+body.rec *{transition:none !important}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="vignette"></div>
+<div class="flash" id="flash"></div>
+
+<div class="brand panel">
+  <div class="logo">FlyDrones <span class="live">LIVE</span></div>
+  <div class="tag">A <b>fruit fly connectome</b> is flying this drone. Camera → fly eyes → spiking brain → descending neurons → throttle.</div>
+  <div class="chips">
+    <div class="chip g"><div class="v" id="sNeurons">850</div><div class="k">neurons</div></div>
+    <div class="chip"><div class="v" id="sConn">4,928</div><div class="k">connections</div></div>
+    <div class="chip p"><div class="v" id="sSpikes">0</div><div class="k">spikes/s</div></div>
+    <div class="chip c"><div class="v" id="sAlt">0.00</div><div class="k">alt m</div></div>
+  </div>
+  <div class="honest">MiniFly: 850-neuron synthetic stand-in with real fly cell types, running in your browser. The <a href="https://github.com/SpikeCalls/FlyDrones">Python package</a> loads the full ~166k-neuron MaleCNS connectome. Simulation, not a real flight.</div>
+</div>
+
+<div class="side">
+  <div class="panel">
+    <div class="ph"><span><b>Fly eyes</b></span><span id="loomTag">T4/T5 · LPLC2</span></div>
+    <div class="eyewrap"><canvas class="hud" id="eyes" width="532" height="399"></canvas><video id="cam" playsinline muted></video></div>
+  </div>
+  <div class="panel">
+    <div class="ph"><span><b>Brain</b> · every neuron</span><span id="rtf">-</span></div>
+    <canvas class="hud" id="brain" width="532" height="380"></canvas>
+  </div>
+  <div class="panel">
+    <div class="ph"><span><b>Spikes</b></span><span>DN · inter · input</span></div>
+    <canvas class="hud" id="raster" width="532" height="120"></canvas>
+  </div>
+</div>
+
+<div class="path panel">
+  <div class="ph" style="margin-bottom:2px"><span><b>What the fly sees and does</b></span><span id="tclock">t 0.0 s</span></div>
+  <div class="gname" id="gname">WARMING UP<small id="gsub">brain settles on the ground</small></div>
+  <div class="chain" id="chain">measuring resting firing rates of the descending neurons</div>
+  <canvas class="hud" id="motor" width="1060" height="190" style="margin-top:8px;background:transparent"></canvas>
+</div>
+
+
+<div class="dock panel" id="dock">
+  <button class="btn" data-g="palm">OPEN PALM<kbd>1</kbd></button>
+  <button class="btn" data-g="fist">FIST<kbd>2</kbd></button>
+  <button class="btn" data-g="left">HAND LEFT<kbd>3</kbd></button>
+  <button class="btn" data-g="right">HAND RIGHT<kbd>4</kbd></button>
+  <button class="btn" data-g="rush">RUSH AT IT<kbd>5</kbd></button>
+  <button class="btn" data-g="drop">DROP HAND<kbd>6</kbd></button>
+  <span class="sep"></span>
+  <button class="btn on" id="bAuto">AUTOPLAY<kbd>space</kbd></button>
+  <button class="btn" id="bChair">CHAIR RUN</button>
+  <button class="btn" id="bCam">USE MY HAND</button>
+  <button class="btn" id="bReset">RESET<kbd>R</kbd></button>
+  <a class="btn gh" href="https://github.com/SpikeCalls/FlyDrones" target="_blank" rel="noopener">GITHUB</a>
+</div>
+
+<div class="toast" id="toast">GIANT FIBER ESCAPE<small>LPLC2 + LC4 → DNp01 fired</small></div>
+<div class="warm" id="warm"><div class="t">WARMING UP THE BRAIN</div><div class="bar"><i id="warmbar"></i></div><div class="s">850 neurons settling · measuring resting rates</div></div>
+
+<script type="module" src="live/app.js"></script>
+</body>
+</html>
