@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="FlyDrones architecture: camera and IMU feed simulated fly sensory neurons, the connectome LIF model drives descending neurons, a decoder and safety governor send commands to the drone, closing the loop">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8a99"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#39ff88"/></marker>
+    <style>
+      .t{font-family:JetBrains Mono,Consolas,Menlo,monospace;fill:#e8eef5;font-size:15px;font-weight:700}
+      .s{font-family:JetBrains Mono,Consolas,Menlo,monospace;fill:#9fb3c8;font-size:12px}
+      .k{font-family:JetBrains Mono,Consolas,Menlo,monospace;fill:#7d8a99;font-size:11px}
+      .box{fill:#0d1117;stroke:#2a3442;stroke-width:1.5;rx:12}
+      .brain{fill:#0b1a14;stroke:#39ff88;stroke-width:1.5}
+      .safe{fill:#1a1408;stroke:#ffb020;stroke-width:1.5}
+      .line{stroke:#7d8a99;stroke-width:1.6;fill:none}
+    </style>
+  </defs>
+  <rect width="1200" height="520" fill="#07090d"/>
+
+  <!-- inputs -->
+  <rect class="box" x="30" y="60" width="200" height="92" rx="12"/>
+  <text class="t" x="48" y="90">Drone camera</text>
+  <text class="s" x="48" y="112">optic flow, looming</text>
+  <text class="k" x="48" y="134">Tello video / sim render</text>
+
+  <rect class="box" x="30" y="178" width="200" height="92" rx="12"/>
+  <text class="t" x="48" y="208">Webcam hand</text>
+  <text class="s" x="48" y="230">palm, fist, drop</text>
+  <text class="k" x="48" y="252">-> visual illusions</text>
+
+  <rect class="box" x="30" y="296" width="200" height="92" rx="12"/>
+  <text class="t" x="48" y="326">IMU</text>
+  <text class="s" x="48" y="348">yaw rate</text>
+  <text class="k" x="48" y="370">-> haltere afferents</text>
+
+  <!-- retina -->
+  <rect class="box" x="290" y="60" width="230" height="328" rx="12"/>
+  <text class="t" x="308" y="90">Fly eyes</text>
+  <text class="k" x="308" y="110">senses/retina.py</text>
+  <text class="s" x="308" y="146">R1-R6   brightness</text>
+  <text class="s" x="308" y="172">T4a/T5a front-&gt;back</text>
+  <text class="s" x="308" y="198">T4b/T5b back-&gt;front</text>
+  <text class="s" x="308" y="224">T4c/T5c scene up</text>
+  <text class="s" x="308" y="250">T4d/T5d scene down</text>
+  <text class="s" x="308" y="276">LPLC2   looming</text>
+  <text class="s" x="308" y="302">LC4     looming speed</text>
+  <text class="s" x="308" y="328">haltere yaw rate</text>
+  <text class="k" x="308" y="366">features -&gt; Poisson Hz</text>
+
+  <!-- brain -->
+  <rect class="brain" x="580" y="60" width="270" height="328" rx="12"/>
+  <text class="t" x="598" y="90">Connectome brain</text>
+  <text class="k" x="598" y="110">brain/lif.py</text>
+  <text class="s" x="598" y="146">MaleCNS v1.0  ~166k neurons</text>
+  <text class="s" x="598" y="168">or MiniFly (850, synthetic)</text>
+  <text class="s" x="598" y="204">signed synapse counts</text>
+  <text class="s" x="598" y="226">ACh + / GABA, Glu -</text>
+  <text class="s" x="598" y="262">leaky integrate-and-fire</text>
+  <text class="s" x="598" y="284">Shiu et al. 2024 params</text>
+  <text class="s" x="598" y="306">event-driven, numpy</text>
+  <g fill="#39ff88">
+    <circle cx="620" cy="350" r="3"/><circle cx="650" cy="342" r="2"/><circle cx="676" cy="356" r="3"/><circle cx="705" cy="345" r="2"/>
+    <circle cx="733" cy="360" r="3"/><circle cx="760" cy="340" r="2"/><circle cx="790" cy="352" r="3"/><circle cx="818" cy="346" r="2"/>
+  </g>
+  <path d="M620 350 L650 342 L676 356 L705 345 L733 360 L760 340 L790 352 L818 346" stroke="#39ff88" stroke-opacity="0.4" fill="none"/>
+
+  <!-- DNs -->
+  <rect class="box" x="910" y="60" width="260" height="150" rx="12"/>
+  <text class="t" x="928" y="90">Descending neurons</text>
+  <text class="s" x="928" y="118">DNg02 L/R  wing stroke</text>
+  <text class="s" x="928" y="142">DNp03 L/R  saccade turn</text>
+  <text class="s" x="928" y="166">DNp01 (GF) escape</text>
+  <text class="k" x="928" y="192">rates (Hz) - baseline</text>
+
+  <rect class="box" x="910" y="238" width="260" height="68" rx="12"/>
+  <text class="t" x="928" y="266">Linear read-out</text>
+  <text class="k" x="928" y="288">defaults or `flydrones calibrate`</text>
+
+  <rect class="safe" x="910" y="330" width="260" height="68" rx="12"/>
+  <text class="t" x="928" y="358">Safety governor</text>
+  <text class="k" x="928" y="380">limits, ceiling, floor, watchdog</text>
+
+  <rect class="box" x="580" y="430" width="590" height="68" rx="12"/>
+  <text class="t" x="598" y="458">Drone</text>
+  <text class="s" x="668" y="458">Sim | DJI Tello | Crazyflie | ArduPilot/PX4 | ESP32-&gt;Betaflight</text>
+  <text class="k" x="598" y="482">throttle, yaw, forward, lateral in -1..1; onboard controller keeps it level</text>
+
+  <!-- arrows -->
+  <path class="line" d="M230 106 H288" marker-end="url(#a)"/>
+  <path class="line" d="M230 224 H288" marker-end="url(#a)"/>
+  <path class="line" d="M230 342 H288" marker-end="url(#a)"/>
+  <path d="M520 224 H578" stroke="#39ff88" stroke-width="2" fill="none" marker-end="url(#g)"/>
+  <path d="M850 135 H908" stroke="#39ff88" stroke-width="2" fill="none" marker-end="url(#g)"/>
+  <path class="line" d="M1040 210 V236" marker-end="url(#a)"/>
+  <path class="line" d="M1040 306 V328" marker-end="url(#a)"/>
+  <path class="line" d="M1040 398 V428" marker-end="url(#a)"/>
+  <path class="line" d="M580 464 H130 V390" stroke-dasharray="5 5" marker-end="url(#a)"/>
+  <text class="k" x="150" y="454">closed loop</text>
+  <text class="k" x="150" y="486">drone motion -&gt; new optic flow</text>
+</svg>

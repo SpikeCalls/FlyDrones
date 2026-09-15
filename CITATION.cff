@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use FlyDrones, please cite it, and cite the MaleCNS connectome and Shiu et al. 2024."
+title: "FlyDrones: a fruit fly connectome as a drone pilot"
+type: software
+version: 0.1.0
+date-released: 2026-09-15
+license: MIT
+repository-code: "https://github.com/SpikeCalls/FlyDrones"
+keywords:
+  - connectome
+  - drosophila
+  - drone
+  - spiking neural network
+  - MaleCNS
+authors:
+  - alias: SpikeCalls
+  - name: Claude
+references:
+  - type: article
+    title: "A Drosophila computational brain model reveals sensorimotor processing"
+    authors:
+      - family-names: Shiu
+        given-names: Philip K.
+    journal: Nature
+    year: 2024
+  - type: data
+    title: "MaleCNS v1.0 connectome"
+    authors:
+      - name: "HHMI Janelia FlyEM, University of Cambridge, MRC LMB, Google Research"
+    url: "https://male-cns.janelia.org/"
+    year: 2026
