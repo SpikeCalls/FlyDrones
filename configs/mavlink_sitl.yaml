@@ -1,0 +1,11 @@
+# ArduPilot SITL / PX4 SITL over MAVLink. Try this before any real vehicle.
+#   sim_vehicle.py -v ArduCopter --console --map          (ArduPilot)
+#   flydrones fly --drone mavlink --mavlink udpin:0.0.0.0:14550 --config configs/mavlink_sitl.yaml --input gesture --send
+control:
+  hz: 20
+safety:
+  max_throttle: 0.6
+  max_forward: 0.5
+  min_alt_m: 1.0
+  max_alt_m: 8.0
+  geofence_radius_m: 15.0

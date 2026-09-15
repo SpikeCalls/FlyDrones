@@ -1,0 +1,11 @@
+# Crazyflie 2.x with Flow deck. No video: use the webcam hand as the eyes.
+# flydrones fly --drone crazyflie --config configs/crazyflie.yaml --input gesture [--send]
+control:
+  hz: 25
+safety:
+  max_throttle: 0.6
+  max_yaw: 0.5
+  max_forward: 0.3
+  min_alt_m: 0.25
+  max_alt_m: 1.2
+  geofence_radius_m: 1.5

@@ -1,0 +1,20 @@
+# Real MaleCNS v1.0 brain. Build it first:
+#   flydrones download malecns && flydrones build-brain --out data/malecns_brain.npz
+#   flydrones calibrate --brain data/malecns_brain.npz --out readout_malecns.json
+brain:
+  source: data/malecns_brain.npz
+  lif:
+    dt: 0.5
+    noise_mv: 0.0
+  bias:                   # tonic flight drive; re-tune with `flydrones inspect` if DNg02 is silent or saturated
+    DNg02_L: 8.0
+    DNg02_R: 8.0
+  record_neurons: 600
+inputs:
+  # MaleCNS has no dedicated "haltere" type name match by default; add the VNC haltere
+  # afferent types you find with `flydrones inspect` or neuPrint, e.g. types: ["^haltere", "^hDA"]
+  HAL_L: {types: ["(?i)haltere"], side: L, feature: yaw_neg, max_hz: 50}
+  HAL_R: {types: ["(?i)haltere"], side: R, feature: yaw_pos, max_hz: 50}
+decoder:
+  readout_file: readout_malecns.json
+  settle_s: 2.0

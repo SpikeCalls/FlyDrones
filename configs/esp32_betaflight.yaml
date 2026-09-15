@@ -1,0 +1,12 @@
+# ESP32 bridge -> Betaflight/INAV via MSP RC override. PROPS OFF for the first test.
+# flydrones fly --drone esp32 --esp32-host 192.168.4.1 --config configs/esp32_betaflight.yaml --input gesture
+control:
+  hz: 50
+safety:
+  max_throttle: 0.4       # throttle here is stick offset around hover_pwm, not climb rate
+  max_yaw: 0.4
+  max_forward: 0.2
+  max_lateral: 0.2
+  slew_per_s: 1.5
+decoder:
+  smoothing: 0.15

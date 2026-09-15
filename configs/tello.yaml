@@ -1,0 +1,16 @@
+# DJI / Ryze Tello: its camera is the fly's eyes.
+# flydrones fly --drone tello --config configs/tello.yaml --input both --live [--send]
+control:
+  hz: 20
+vision:
+  flow_gain: 2.0          # 720p Tello video is noisier than the simulator
+  loom_gain: 6.0
+safety:
+  max_throttle: 0.5
+  max_yaw: 0.5
+  max_forward: 0.3
+  min_alt_m: 0.4
+  max_alt_m: 1.8
+  min_battery_pct: 25
+decoder:
+  cruise: 0.0             # set e.g. 0.2 to let the fly cruise forward; looming brakes it
