@@ -63,4 +63,4 @@ except `terms` blocks, which replace.
 LIF simulator, retina, encoder, gesture illusions, decoder, safety governor and simulated drone.
 `tools/export_web_brain.py` writes MiniFly and the default config to `docs/live/minifly.json`, and CI runs
 `node tools/check_web_engine.mjs` to make sure the browser version still climbs, holds, escapes and descends like
-the Python one. Rendering uses a vendored copy of three.js (MIT, `docs/vendor/`).
+the Python one. Rendering uses a vendored copy of three.js (MIT, `docs/vendor/`): `models.js` builds the drone, the fly mascot and the swatter from primitives, `room.js` the bedroom, `app.js` the HUD, the swat game, picking and sound. Browser-only additions to the engine: neuron poking (`Brain.poke`), non-solid moving obstacles that the camera can see, and a giant-fiber jump used by the game.

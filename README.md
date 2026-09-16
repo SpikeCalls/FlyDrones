@@ -20,7 +20,7 @@
 
 <p align="center">
   <a href="https://spikecalls.github.io/FlyDrones/"><img src="assets/hero.gif" alt="FlyDrones Live: a 3D drone flown by a spiking fly brain model, with fly-eye optic flow, every neuron firing, and a giant fiber escape" width="100%"></a>
-  <br><sub>Recorded from the <a href="https://spikecalls.github.io/FlyDrones/">live browser demo</a>. Simulation running MiniFly, see <a href="#the-honest-part">the honest part</a>.</sub>
+  <br><sub>Recorded from the <a href="https://spikecalls.github.io/FlyDrones/">live browser demo</a>: the swat game. Simulation running MiniFly, see <a href="#the-honest-part">the honest part</a>.</sub>
 </p>
 
 <table align="center">
@@ -46,7 +46,19 @@ In 2026 the complete central nervous system of a male fruit fly was published: *
 
 ## Try it in 10 seconds
 
-**[spikecalls.github.io/FlyDrones](https://spikecalls.github.io/FlyDrones/)**. No install. The whole loop runs in your browser: a ray-cast fly camera, per-cell optic flow, 850 spiking neurons, the descending-neuron read-out, the safety governor and the drone physics.
+**[spikecalls.github.io/FlyDrones](https://spikecalls.github.io/FlyDrones/)**. No install. A 3D bedroom, a blue quadcopter with a fly riding on top, and the whole loop running live in your browser: a ray-cast drone camera, per-cell optic flow, 850 spiking neurons, the descending-neuron read-out, the safety governor and the drone physics.
+
+**Play**
+
+| | what you do | what happens inside |
+|---|---|---|
+| `S` | **SWAT IT**: swing a fly swatter at the drone | the swatter expands on the camera → **LPLC2 + LC4 → giant fiber DNp01** fires → the drone jumps. Too fast and it gets swatted. Every dodge makes the next swing faster |
+| click | **the Brain panel**: stimulate any neuron group | poke `DNg02 L` and watch it yaw, poke `LPLC2` and watch it escape |
+| click | **the fly** | it buzzes (it is only the mascot, the pilot is the simulated brain) |
+| `1`-`6` | hand gestures: palm, fist, left, right, rush, drop | optic-flow illusions, see below |
+| | **USE MY HAND** | your webcam and MediaPipe hand tracking drive the same illusions |
+| | **CHAIR RUN** | the drone cruises at a chair, looming makes it brake and dodge |
+| `N` `C` `M` | day / night, orbit / chase / drone camera, sound | |
 
 | key | gesture | what the fly sees | what the brain does |
 |---|---|---|---|
@@ -55,8 +67,6 @@ In 2026 the complete central nervous system of a male fruit fly was published: *
 | `3` `4` | hand left / right | scene rotates | HS → DNg02 L vs R → optomotor turn |
 | `5` | rush at it | expansion on both eyes | **LPLC2 + LC4 → giant fiber DNp01** → escape |
 | `6` | drop hand | scene drifts **down**, as if rising | T4d → LPi ⊣ DNg02 → descend |
-| | **USE MY HAND** | your webcam, MediaPipe hand tracking | same pathways, your gestures |
-| | **CHAIR RUN** | the drone cruises at a chair | looming → DNp03 / DNp01 brake and dodge |
 
 When the drone really climbs, its camera sees real downward flow, which cancels the illusion, so the loop settles on its own.
 
@@ -80,7 +90,7 @@ When the drone really climbs, its camera sees real downward flow, which cancels 
 - **This is a computational model, not a living or resurrected fly.** The wiring is biological (synapse counts from electron microscopy). The dynamics are a standard leaky integrate-and-fire model ([Shiu et al., *Nature* 2024](https://www.nature.com/articles/s41586-024-07763-9)) using their published parameters.
 - **The bridge is engineered.** Which camera features feed which neurons, the tonic "I am flying" drive, and the linear read-out from descending neurons to stick commands were designed by us. Each choice is written down in [`defaults.yaml`](src/flydrones/defaults.yaml) and [docs/SCIENCE.md](docs/SCIENCE.md), with the paper it leans on.
 - **The drone's own flight controller keeps it level.** FlyDrones sends high-level stick commands (vertical speed, yaw rate, forward), like a pilot with a remote. A **safety governor** outside the brain always has the last word.
-- **The browser demo and the GIFs use MiniFly**, an 850-neuron, hand-wired stand-in with real fly cell-type names, so it runs anywhere in seconds. It is not the real connectome. The real 166k MaleCNS connectome loads with two commands ([below](#use-the-real-connectome)), and you calibrate its read-out with `flydrones calibrate`.
+- **The browser demo and the GIFs use MiniFly**, an 850-neuron, hand-wired stand-in with real fly cell-type names, so it runs anywhere in seconds. It is not the real connectome. The fly sitting on the 3D drone is a mascot; the pilot is the simulated brain. In the swat game the giant fiber triggers a short jump (a stand-in for a fly's takeoff jump) instead of the gentle climb used for real drones. The real 166k MaleCNS connectome loads with two commands ([below](#use-the-real-connectome)), and you calibrate its read-out with `flydrones calibrate`.
 - **Hardware adapters are written against the official SDKs but have not been flight-tested by us yet.** Start in the simulator, then props-off, then a net or an empty room.
 
 ## Quick start
@@ -215,7 +225,7 @@ Read [docs/SAFETY.md](docs/SAFETY.md) before the first real flight.
 - [x] Optic flow, looming, gesture illusions, haltere feedback
 - [x] Tello, Crazyflie, MAVLink, ESP32/Betaflight adapters, safety governor
 - [x] Live dashboard, GIF recorder, swarm mode, read-out calibration
-- [x] Browser demo on GitHub Pages with webcam hand tracking
+- [x] Browser demo on GitHub Pages: 3D room, swat game, clickable neurons, webcam hand tracking
 - [ ] First real Tello flight video with the full MaleCNS brain
 - [ ] Retinotopy from MaleCNS optic-lobe hex coordinates
 - [ ] PyTorch / CUDA backend for full-brain real time on a laptop GPU

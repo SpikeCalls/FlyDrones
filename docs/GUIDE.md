@@ -16,7 +16,7 @@ This is the long version of the README, step by step, from zero to a drone in th
 
 ## Try it in the browser first
 
-Open **[spikecalls.github.io/FlyDrones](https://spikecalls.github.io/FlyDrones/)**. Keys `1`-`6` are gestures, **USE MY HAND** turns on webcam hand tracking, **CHAIR RUN** flies at an obstacle. The browser runs MiniFly with a JavaScript port of the same engine (`docs/live/engine.js`), checked against the Python package in CI.
+Open **[spikecalls.github.io/FlyDrones](https://spikecalls.github.io/FlyDrones/)**. Press `S` to swing a fly swatter at the drone and see whether the giant fiber reacts in time, click any neuron group in the Brain panel to stimulate it, keys `1`-`6` are gestures, **USE MY HAND** turns on webcam hand tracking, **CHAIR RUN** flies at an obstacle, `N` switches day and night, `C` cycles camera views. The browser runs MiniFly with a JavaScript port of the same engine (`docs/live/engine.js`), checked against the Python package in CI.
 
 ## 0. The idea in one minute
 

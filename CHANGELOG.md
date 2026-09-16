@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 - 2026-09-16
+Live demo 2.0: detailed blue quadcopter with a fly mascot, furnished bedroom with walls, day/night themes, shadows,
+swat-the-drone game driven by the looming pathway, click-to-stimulate neurons, clickable 3D objects, camera modes,
+particles and sound.
+
 ## 0.1.1 - 2026-09-15
 Browser demo on GitHub Pages (three.js, JS port of the engine, webcam hands), hero GIF, social preview image,
 CI check that the browser engine matches Python.
