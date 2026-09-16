@@ -47,6 +47,7 @@ export class Brain {
     this.ref = new Int32Array(n);
     this.buf = new Float32Array(this.D * n);
     this.rate = new Float32Array(n);
+    this.extra = new Float32Array(n); // extra Poisson Hz, e.g. when you click a neuron group
     this.t = 0; this.tMs = 0; this.totalSpikes = 0;
     this.activity = new Float32Array(n); // for glow
   }
@@ -57,7 +58,10 @@ export class Brain {
       if (!idx) continue;
       for (let k = 0; k < idx.length; k++) this.rate[idx[k]] = arr[k];
     }
+    for (let i = 0; i < this.n; i++) if (this.extra[i] > 0) this.rate[i] += this.extra[i];
   }
+  poke(start, count, hz) { for (let i = start; i < start + count; i++) this.extra[i] = hz; }
+  unpoke() { this.extra.fill(0); }
   // run `ms` of brain time; returns {rates: {group: Hz}, spikes: [[tFrac, neuron], ...]}
   tick(inputRates, ms) {
     this.setInputs(inputRates);
@@ -152,7 +156,9 @@ export class RayCamera {
         const tmax = Math.min(Math.max(t1, t2), Math.max(t3, t4), Math.max(t5, t6));
         if (tmax >= tmin && tmin > 1e-6 && tmin < tb) {
           const hx_ = px + tmin * dx, hy_ = py + tmin * dy, hz_ = pz + tmin * dz;
-          const chk = ((Math.floor((hx_ + hy_) / 0.12) + Math.floor(hz_ / 0.12)) % 2 + 2) % 2;
+          // moving objects carry their texture with them (object coordinates), static ones use world coordinates like the Python sim
+          const ox = b.moving ? b.lo[0] : 0, oy = b.moving ? b.lo[1] : 0, oz = b.moving ? b.lo[2] : 0;
+          const chk = ((Math.floor((hx_ - ox + hy_ - oy) / 0.12) + Math.floor((hz_ - oz) / 0.12)) % 2 + 2) % 2;
           tb = tmin; shade = b.shade + chk * 0.22;
         }
       }
@@ -166,7 +172,7 @@ export class RayCamera {
 // ------------------------------------------------------------------ drone physics
 export class SimDrone {
   constructor(start = [-1.5, 0, 0], yawDeg = 0, seed = 0) {
-    this.room = ROOM;
+    this.room = { ...ROOM, boxes: ROOM.boxes.map((b) => ({ ...b })) };
     this.pos = [...start]; this.vel = [0, 0, 0];
     this.yaw = (yawDeg * Math.PI) / 180; this.yawRate = 0;
     this.vMax = 1.0; this.vzMax = 0.8; this.yrMax = (120 * Math.PI) / 180; this.tau = 0.35; this.wind = 0.03;
@@ -178,6 +184,11 @@ export class SimDrone {
   }
   gauss() { const u = 1 - this.rng(), v = this.rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
   takeoff() { this.flying = true; this.takeoffTarget = 0.9; this.landing = false; }
+  // browser game only: a giant-fiber "takeoff jump" = short velocity burst up and back
+  jump(up = 1.6, back = 0.8) {
+    if (!this.flying || this.takeoffTarget !== null) return;
+    this.vel[0] -= Math.cos(this.yaw) * back; this.vel[1] -= Math.sin(this.yaw) * back; this.vel[2] += up;
+  }
   land() { this.landing = true; }
   send(cmd) { this.cmd = cmd; }
   telemetry() {
@@ -218,6 +229,7 @@ export class SimDrone {
     let q = [clamp(p[0], -hx, hx), clamp(p[1], -hy, hy), clamp(p[2], 0, room.h - r)];
     let hit = Math.abs(q[0] - p[0]) > 1e-9 || Math.abs(q[1] - p[1]) > 1e-9 || (q[2] !== p[2] && p[2] > 0);
     for (const b of room.boxes) {
+      if (b.solid === false) continue;
       if (q[0] > b.lo[0] - r && q[0] < b.hi[0] + r && q[1] > b.lo[1] - r && q[1] < b.hi[1] + r && q[2] > b.lo[2] - r && q[2] < b.hi[2] + r) {
         q = [...this.pos]; hit = true;
       }

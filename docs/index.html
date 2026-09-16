@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FlyDrones Live: a fly brain flies a drone</title>
-<meta name="description" content="A fruit fly connectome model flies a drone in your browser. Show it your hand: open palm climbs, fist holds, rush at the camera and the giant fiber fires an escape.">
+<meta name="description" content="A fruit fly brain model flies a drone in your browser. Swat it, show it your hand, poke its neurons.">
 <meta property="og:title" content="FlyDrones Live: a fly brain flies a drone">
 <meta property="og:description" content="Camera -> fly eyes -> spiking fly brain -> descending neurons -> drone. Runs in your browser.">
 <meta property="og:image" content="https://spikecalls.github.io/FlyDrones/social.png">
@@ -52,8 +52,29 @@ canvas.hud{display:block;width:100%;border-radius:8px;background:#030508}
 .btn.on{border-color:var(--green);color:var(--green);box-shadow:0 0 16px rgba(57,255,136,.25) inset}
 .btn kbd{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:6px}
 .sep{width:1px;align-self:stretch;background:var(--line);margin:0 4px}
-.btn.gh{color:#05070b;background:var(--green);border-color:var(--green)}
-.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.9);font-family:var(--mono);font-weight:900;font-size:34px;letter-spacing:3px;color:var(--amber);text-shadow:0 0 24px rgba(255,150,40,.9);opacity:0;transition:all .6s;pointer-events:none;text-align:center}
+.btn.swat{border-color:rgba(255,176,32,.7);color:var(--amber);box-shadow:0 0 18px rgba(255,176,32,.25) inset}
+.btn.swat:hover{background:rgba(255,176,32,.12)}
+.toggles{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.tbtn{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;text-decoration:none;letter-spacing:.5px}
+.tbtn:hover{border-color:rgba(76,201,240,.6)}
+.tbtn kbd{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:5px}
+.tbtn.gh{color:#05070b;background:var(--green);border-color:var(--green)}
+.score{position:fixed;left:50%;top:16px;transform:translateX(-50%);padding:10px 16px;text-align:center;display:none;min-width:420px}
+.score.on{display:block}
+.score .st{font-family:var(--mono);font-weight:900;letter-spacing:2px;color:var(--amber);font-size:14px}
+.score .st small{display:block;font-weight:500;letter-spacing:1px;color:var(--muted);font-size:10px;margin-top:2px}
+.score .sr{display:flex;gap:16px;justify-content:center;margin-top:6px}
+.score .sr div{display:flex;flex-direction:column;align-items:center}
+.score .sr b{font-family:var(--mono);font-size:20px}
+.score .sr span{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.score .sh{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-top:5px}
+.tip{position:fixed;pointer-events:none;background:rgba(5,7,11,.9);border:1px solid var(--line);color:var(--text);font-size:12px;padding:6px 9px;border-radius:8px;max-width:260px;display:none;z-index:5;line-height:1.35}
+.tip b{color:var(--green);font-family:var(--mono)}
+.hint{position:fixed;left:50%;top:50%;transform:translate(-50%,120px);padding:10px 14px;font-size:13px;transition:opacity 1s;pointer-events:none}
+.hint kbd{font-family:var(--mono);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.pop{position:fixed;font-family:var(--mono);font-weight:900;font-size:26px;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,.6);transform:translate(-50%,-50%);white-space:nowrap}
+#hudcanvas-brain{cursor:crosshair}
+.toast{position:fixed;left:50%;top:175px;transform:translate(-50%,-50%) scale(.9);font-family:var(--mono);font-weight:900;font-size:28px;letter-spacing:3px;color:var(--amber);text-shadow:0 0 24px rgba(255,150,40,.9);opacity:0;transition:all .6s;pointer-events:none;text-align:center}
 .toast small{display:block;font-size:13px;letter-spacing:2px;color:var(--text);opacity:.8;margin-top:6px}
 .toast.on{opacity:1;transform:translate(-50%,-50%) scale(1);transition:none}
 .warm{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-family:var(--mono);pointer-events:none;transition:opacity .6s}
@@ -70,7 +91,8 @@ canvas.hud{display:block;width:100%;border-radius:8px;background:#030508}
   .side{overflow:visible}
   .toast{font-size:22px;top:18%}
   #scene{position:relative;height:56vh}
-  .brand,.side,.path,.dock{position:static;width:auto;transform:none;margin:10px 12px}
+  .brand,.side,.path,.dock,.score{position:static;width:auto;transform:none;margin:10px 12px;min-width:0}
+  .hint{display:none}
   .side{bottom:auto}
   .dock{flex-wrap:wrap;justify-content:center}
   .vignette{display:none}
@@ -92,7 +114,13 @@ body.rec *{transition:none !important}
     <div class="chip p"><div class="v" id="sSpikes">0</div><div class="k">spikes/s</div></div>
     <div class="chip c"><div class="v" id="sAlt">0.00</div><div class="k">alt m</div></div>
   </div>
-  <div class="honest">MiniFly: 850-neuron synthetic stand-in with real fly cell types, running in your browser. The <a href="https://github.com/SpikeCalls/FlyDrones">Python package</a> loads the full ~166k-neuron MaleCNS connectome. Simulation, not a real flight.</div>
+  <div class="toggles">
+    <button class="tbtn" id="bTheme" title="day / night">NIGHT<kbd>N</kbd></button>
+    <button class="tbtn" id="bView" title="orbit / chase / drone camera">VIEW: ORBIT<kbd>C</kbd></button>
+    <button class="tbtn" id="bSound" title="sound">SOUND OFF<kbd>M</kbd></button>
+    <a class="tbtn gh" href="https://github.com/SpikeCalls/FlyDrones" target="_blank" rel="noopener">GITHUB</a>
+  </div>
+  <div class="honest">The fly on top is a mascot. The pilot is the simulated brain on the right. MiniFly: 850-neuron synthetic stand-in with real fly cell types, running in your browser. The <a href="https://github.com/SpikeCalls/FlyDrones">Python package</a> loads the full ~166k-neuron MaleCNS connectome. Simulation, not a real flight.</div>
 </div>
 
 <div class="side">
@@ -101,8 +129,8 @@ body.rec *{transition:none !important}
     <div class="eyewrap"><canvas class="hud" id="eyes" width="532" height="399"></canvas><video id="cam" playsinline muted></video></div>
   </div>
   <div class="panel">
-    <div class="ph"><span><b>Brain</b> · every neuron</span><span id="rtf">-</span></div>
-    <canvas class="hud" id="brain" width="532" height="380"></canvas>
+    <div class="ph"><span><b>Brain</b> · click it</span><span id="rtf">-</span></div>
+    <canvas class="hud" id="brain" width="532" height="380" style="cursor:crosshair" title=""></canvas>
   </div>
   <div class="panel">
     <div class="ph"><span><b>Spikes</b></span><span>DN · inter · input</span></div>
@@ -119,19 +147,35 @@ body.rec *{transition:none !important}
 
 
 <div class="dock panel" id="dock">
-  <button class="btn" data-g="palm">OPEN PALM<kbd>1</kbd></button>
-  <button class="btn" data-g="fist">FIST<kbd>2</kbd></button>
-  <button class="btn" data-g="left">HAND LEFT<kbd>3</kbd></button>
-  <button class="btn" data-g="right">HAND RIGHT<kbd>4</kbd></button>
-  <button class="btn" data-g="rush">RUSH AT IT<kbd>5</kbd></button>
-  <button class="btn" data-g="drop">DROP HAND<kbd>6</kbd></button>
+  <button class="btn" data-g="palm" title="open palm: the fly sees the room drift up, as if sinking">PALM<kbd>1</kbd></button>
+  <button class="btn" data-g="fist" title="fist: still scene, hold">FIST<kbd>2</kbd></button>
+  <button class="btn" data-g="left" title="hand left: the scene rotates left">LEFT<kbd>3</kbd></button>
+  <button class="btn" data-g="right" title="hand right: the scene rotates right">RIGHT<kbd>4</kbd></button>
+  <button class="btn" data-g="rush" title="hand rushes at the camera: looming">RUSH<kbd>5</kbd></button>
+  <button class="btn" data-g="drop" title="hand dropped: the scene drifts down, as if rising">DROP<kbd>6</kbd></button>
   <span class="sep"></span>
+  <button class="btn swat" id="bSwat" title="throw a fly swatter at the drone. Can the fly brain react in time?">SWAT IT<kbd>S</kbd></button>
   <button class="btn on" id="bAuto">AUTOPLAY<kbd>space</kbd></button>
   <button class="btn" id="bChair">CHAIR RUN</button>
   <button class="btn" id="bCam">USE MY HAND</button>
   <button class="btn" id="bReset">RESET<kbd>R</kbd></button>
-  <a class="btn gh" href="https://github.com/SpikeCalls/FlyDrones" target="_blank" rel="noopener">GITHUB</a>
 </div>
+
+<div class="score panel" id="score">
+  <div class="st">SWAT THE DRONE <small>the fly brain has to see it coming</small></div>
+  <div class="sr">
+    <div><b id="scDodge">0</b><span>dodged</span></div>
+    <div><b id="scHit">0</b><span>swatted</span></div>
+    <div><b id="scStreak">0</b><span>streak</span></div>
+    <div><b id="scBest">0</b><span>best</span></div>
+    <div><b id="scSpeed">1.2</b><span>m/s</span></div>
+    <div><b id="scReact">-</b><span>GF lead ms</span></div>
+  </div>
+  <div class="sh" id="scHint">click the room or press S to swing</div>
+</div>
+<div class="tip" id="tip"></div>
+<div class="hint panel" id="hint"><b>Try:</b> click the fly · press <kbd>S</kbd> to swat the drone · click a neuron group in the Brain panel · drag to orbit</div>
+<div id="popups"></div>
 
 <div class="toast" id="toast">GIANT FIBER ESCAPE<small>LPLC2 + LC4 → DNp01 fired</small></div>
 <div class="warm" id="warm"><div class="t">WARMING UP THE BRAIN</div><div class="bar"><i id="warmbar"></i></div><div class="s">850 neurons settling · measuring resting rates</div></div>
